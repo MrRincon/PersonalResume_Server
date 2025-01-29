@@ -16,6 +16,9 @@ app.use(morgan('short'));// Using morgan to add a logger that outputs each reque
 // Second Middleware to server static files
 let assetsPath = path.join(__dirname, './assets');// Locate the images folder
 app.use(express.static(assetsPath));
+// Same Middleware to server static files
+let assetsPath2 = path.join(__dirname, './public');// Locate the images folder
+app.use(express.static(assetsPath2));
 
 // Extra Middleware to allow Cross-Origin Resource Sharing
 app.use(cors());
