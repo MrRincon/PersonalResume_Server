@@ -6,7 +6,7 @@ const cors = require('cors');
 const accessGetPost = require('./serverRequests.js');
 
 // Define port which the server will listen
-const PORT = process.env.PORT || 5173;
+const PORT = process.env.PORT || 3000;
 // Initialises an express app, which is the main object used to set up middlewares, routes, and start the server
 const app = express();
 
@@ -14,8 +14,8 @@ const app = express();
 app.use(morgan('short'));// Using morgan to add a logger that outputs each request to the console
 
 // Second Middleware to server static files
-let imagePath = path.join(__dirname, './Images');// Locate the images folder
-app.use(express.static(imagePath));
+let assetsPath = path.join(__dirname, './assets');// Locate the images folder
+app.use(express.static(assetsPath));
 
 // Extra Middleware to allow Cross-Origin Resource Sharing
 app.use(cors());
