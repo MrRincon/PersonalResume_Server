@@ -102,9 +102,19 @@ accessGetPost.get(`/Links`, async (req, res) => {
 });
 
 // GET for all the education
-accessGetPost.get(`/Education`, async (req, res) => {
+accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
+  const eduID = parseInt(req.params[0], 10);
+  if (isNaN(eduID)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid education ID" });
+  }
+
   try {
-    const education = await EDUCATION.find({}).toArray();
+    const education = await EDUCATION.findOne({ id: eduID });
+    if (!education) {
+      return res.status(404).json({ success: false, message: "Education not found" });
+    }
     res.json(education);
   } catch (error) {
     res.status(500).json({
