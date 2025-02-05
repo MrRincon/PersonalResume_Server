@@ -104,6 +104,7 @@ accessGetPost.get(`/Links`, async (req, res) => {
 // GET for all the education
 accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
   const eduID = parseInt(req.params[0], 10);
+  console.log(eduID);
   if (isNaN(eduID)) {
     return res
       .status(400)
@@ -116,6 +117,7 @@ accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
       return res.status(404).json({ success: false, message: "Education not found" });
     }
     res.json(education);
+    console.log(education);
   } catch (error) {
     res.status(500).json({
       success: false,
