@@ -1,5 +1,5 @@
 {
-  "name": "alam_rincon_resume_server",
+  "name": "personalresume_server",
   "version": "1.0.0",
   "description": "Server for Resume Web Application",
   "main": "server.js",
