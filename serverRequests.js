@@ -88,9 +88,9 @@ accessGetPost.get(`/Projects`, async (req, res) => {
   }
 });
 
-// GET for all the links
+// GET for all the links related to the user
 accessGetPost.get(`/Links/:userId`, async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const userId = parseInt(req.params.userId);
 
   try {
     const user = await USER.findOne({ id: userId}); // Find user by id
@@ -100,6 +100,7 @@ accessGetPost.get(`/Links/:userId`, async (req, res) => {
     };
 
     const links = await LINKS.find({ id: {$in: user.links } }).toArray(); // Get all the links related to the user id provided
+    console.log(links)
     
     res.json(links);
   } catch (error){
