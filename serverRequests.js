@@ -100,7 +100,6 @@ accessGetPost.get(`/Links/:userId`, async (req, res) => {
     };
 
     const links = await LINKS.find({ id: {$in: user.links } }).toArray(); // Get all the links related to the user id provided
-    console.log(links)
     
     res.json(links);
   } catch (error){
