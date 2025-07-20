@@ -89,19 +89,28 @@ accessGetPost.get(`/Projects`, async (req, res) => {
 });
 
 // GET for all the links
-accessGetPost.get(`/Links`, async (req, res) => {
+accessGetPost.get(`/Links/:userId`, async (req, res) => {
+  const userId = parseInt(req.params.id);
+
   try {
-    const links = await LINKS.find({}).toArray();
+    const user = await USER.findOne({ id: userId}); // Find user by id
+
+    if(!user || !Array.isArray(user.links) || user.links.length === 0) {
+      return res.json([]);
+    };
+
+    const links = await LINKS.find({ id: {$in: user.links } }).toArray(); // Get all the links related to the user id provided
+    
     res.json(links);
-  } catch (error) {
+  } catch (error){
     res.status(500).json({
       success: false,
-      message: `Error getting the links with internal server: ${error}`,
+      message: `Error fetching links for the current user: ${error}`,
     });
   }
 });
 
-// GET for all the education
+// GET for an Specific Education
 accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
   const eduID = parseInt(req.params[0], 10);
   if (isNaN(eduID)) {
