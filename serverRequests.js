@@ -62,14 +62,23 @@ accessGetPost.get(`/Owner`, async (req, res) => {
 });
 
 // GET for all the skills
-accessGetPost.get(`/Skills`, async (req, res) => {
+accessGetPost.get(`/Skills/:userId`, async (req, res) => {
+  const userId = parseInt(req.params.userId);
+
   try {
-    const skills = await SKILLS.find({}).toArray();
+    const user = await USER.findOne({ id: userId});
+    
+    if(!user || !Array.isArray(user.skills) || user.skills.length === 0) {
+      return res.json([]);
+    };
+
+    const skills = await SKILLS.find({ id: {$in: user.skills } }).toArray();
+
     res.json(skills);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: `Error getting the skills with internal server: ${error}`,
+      message: `Error getting the skills for the current user: ${error}`,
     });
   }
 });
@@ -100,7 +109,6 @@ accessGetPost.get(`/Links/:userId`, async (req, res) => {
     };
 
     const links = await LINKS.find({ id: {$in: user.links } }).toArray(); // Get all the links related to the user id provided
-    console.log(links)
     
     res.json(links);
   } catch (error){
