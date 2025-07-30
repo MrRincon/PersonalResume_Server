@@ -39,19 +39,22 @@ accessGetPost.get(`/Owner`, async (req, res) => {
 
 // GET for all the links related to the user
 accessGetPost.get(`/Links/:userId`, async (req, res) => {
+  if (!ObjectId.isValid(req.params.userId)) {
+    return res.status(400).json({ success: false, message: "Invalid user ID" });
+  }
   const userId = new ObjectId(req.params.userId);
 
   try {
-    const user = await USER.findOne({ _id: userId}); // Find user by id
+    const user = await USER.findOne({ _id: userId }); // Find user by id
 
-    if(!user || !Array.isArray(user.links) || user.links.length === 0) {
+    if (!user || !Array.isArray(user.links) || user.links.length === 0) {
       return res.json([]);
     };
 
-    const links = await LINKS.find({ id: {$in: user.links } }).toArray(); // Get all the links related to the user id provided
-    
+    const links = await LINKS.find({ id: { $in: user.links } }).toArray(); // Get all the links related to the user id provided
+
     res.json(links);
-  } catch (error){
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: `Error fetching links for the current user: ${error}`,
@@ -84,16 +87,19 @@ accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
 
 // GET for all the skills
 accessGetPost.get(`/Skills/:userId`, async (req, res) => {
+  if (!ObjectId.isValid(req.params.userId)) {
+    return res.status(400).json({ success: false, message: "Invalid user ID" });
+  }
   const userId = new ObjectId(req.params.userId);
 
   try {
-    const user = await USER.findOne({ _id: userId});
-    
-    if(!user || !Array.isArray(user.skills) || user.skills.length === 0) {
+    const user = await USER.findOne({ _id: userId });
+
+    if (!user || !Array.isArray(user.skills) || user.skills.length === 0) {
       return res.json([]);
     };
 
-    const skills = await SKILLS.find({ id: {$in: user.skills } }).toArray();
+    const skills = await SKILLS.find({ id: { $in: user.skills } }).toArray();
 
     res.json(skills);
   } catch (error) {
@@ -106,16 +112,18 @@ accessGetPost.get(`/Skills/:userId`, async (req, res) => {
 
 // GET for all the projects
 accessGetPost.get(`/Projects/:userId`, async (req, res) => {
+  if (!ObjectId.isValid(req.params.userId)) {
+    return res.status(400).json({ success: false, message: "Invalid user ID" });
+  }
   const userId = new ObjectId(req.params.userId);
-
   try {
     const user = await USER.findOne({ _id: userId });
 
-    if(!user || !Array.isArray(user.projects) || user.projects.length === 0) {
+    if (!user || !Array.isArray(user.projects) || user.projects.length === 0) {
       return res.json([]);
     };
 
-    const projects = await PROJECTS.find({ _id: {$in: user.projects} }).toArray();
+    const projects = await PROJECTS.find({ _id: { $in: user.projects } }).toArray();
 
     res.json(projects);
   } catch (error) {
