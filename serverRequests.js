@@ -61,42 +61,6 @@ accessGetPost.get(`/Owner`, async (req, res) => {
   }
 });
 
-// GET for all the skills
-accessGetPost.get(`/Skills/:userId`, async (req, res) => {
-  const userId = parseInt(req.params.userId);
-
-  try {
-    const user = await USER.findOne({ id: userId});
-    
-    if(!user || !Array.isArray(user.skills) || user.skills.length === 0) {
-      return res.json([]);
-    };
-
-    const skills = await SKILLS.find({ id: {$in: user.skills } }).toArray();
-
-    res.json(skills);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Error getting the skills for the current user: ${error}`,
-    });
-  }
-});
-
-// GET for all the projects
-accessGetPost.get(`/Projects`, async (req, res) => {
-  try {
-    const projects = await PROJECTS.find({}).toArray();
-    res.json(projects);
-    // await client.close();
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Error getting the orders with internal server: ${error}`,
-    });
-  }
-});
-
 // GET for all the links related to the user
 accessGetPost.get(`/Links/:userId`, async (req, res) => {
   const userId = parseInt(req.params.userId);
@@ -138,6 +102,50 @@ accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
     res.status(500).json({
       success: false,
       message: `Error getting the education with internal server: ${error}`,
+    });
+  }
+});
+
+// GET for all the skills
+accessGetPost.get(`/Skills/:userId`, async (req, res) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const user = await USER.findOne({ id: userId});
+    
+    if(!user || !Array.isArray(user.skills) || user.skills.length === 0) {
+      return res.json([]);
+    };
+
+    const skills = await SKILLS.find({ id: {$in: user.skills } }).toArray();
+
+    res.json(skills);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: `Error getting the skills for the current user: ${error}`,
+    });
+  }
+});
+
+// GET for all the projects
+accessGetPost.get(`/Projects/:userId`, async (req, res) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const user = await USER.findOne({ id: userId });
+
+    if(!user || !Array.isArray(user.projects) || user.projects.length === 0) {
+      return res.json([]);
+    };
+
+    const projects = await PROJECTS.find({ id: {$in: user.projects} }).toArray();
+
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: `Error getting the projects for the current user: ${error}`,
     });
   }
 });
