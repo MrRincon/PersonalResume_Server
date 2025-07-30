@@ -1,6 +1,7 @@
 // Import the necessary modules
 const express = require("express");
 const bodyParser = require("body-parser");
+
 // Import collections from mongoDB server
 const {
   USER,
@@ -12,32 +13,7 @@ const {
 const accessGetPost = express();
 accessGetPost.use(bodyParser.json());
 accessGetPost.set("json spaces", 3);
-
-// Function to generate a random Id
-function generateRandomID() {
-  let randomId =
-    "1" +
-    Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0");
-  return randomId; // Return the random id
-}
-
-// Async function to make sure that the id generated is unique
-async function generateUniqueID() {
-  let uniqueID;
-  let isNotUnique = true;
-  while (isNotUnique) {
-    // Generates a new random id until the id is not found in the collection
-    uniqueID = generateRandomID(); // Call the function that generates the random id
-    const existingOrder = await USER.findOne({ id: uniqueID });
-    if (!existingOrder) {
-      // Break the loop when the id is unique
-      isNotUnique = false;
-    }
-  }
-  return uniqueID; // Returns the unique generated id
-}
+const { ObjectId } = require('mongodb');
 
 // GET to the server welcome page
 accessGetPost.get(`/`, (req, res) => {
@@ -63,10 +39,10 @@ accessGetPost.get(`/Owner`, async (req, res) => {
 
 // GET for all the links related to the user
 accessGetPost.get(`/Links/:userId`, async (req, res) => {
-  const userId = parseInt(req.params.userId);
+  const userId = new ObjectId(req.params.userId);
 
   try {
-    const user = await USER.findOne({ id: userId}); // Find user by id
+    const user = await USER.findOne({ _id: userId}); // Find user by id
 
     if(!user || !Array.isArray(user.links) || user.links.length === 0) {
       return res.json([]);
@@ -108,10 +84,10 @@ accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
 
 // GET for all the skills
 accessGetPost.get(`/Skills/:userId`, async (req, res) => {
-  const userId = parseInt(req.params.userId);
+  const userId = new ObjectId(req.params.userId);
 
   try {
-    const user = await USER.findOne({ id: userId});
+    const user = await USER.findOne({ _id: userId});
     
     if(!user || !Array.isArray(user.skills) || user.skills.length === 0) {
       return res.json([]);
@@ -130,16 +106,16 @@ accessGetPost.get(`/Skills/:userId`, async (req, res) => {
 
 // GET for all the projects
 accessGetPost.get(`/Projects/:userId`, async (req, res) => {
-  const userId = parseInt(req.params.userId);
+  const userId = new ObjectId(req.params.userId);
 
   try {
-    const user = await USER.findOne({ id: userId });
+    const user = await USER.findOne({ _id: userId });
 
     if(!user || !Array.isArray(user.projects) || user.projects.length === 0) {
       return res.json([]);
     };
 
-    const projects = await PROJECTS.find({ id: {$in: user.projects} }).toArray();
+    const projects = await PROJECTS.find({ _id: {$in: user.projects} }).toArray();
 
     res.json(projects);
   } catch (error) {
