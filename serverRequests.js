@@ -64,20 +64,20 @@ accessGetPost.get(`/Links/:userId`, async (req, res) => {
 });
 
 // GET for an Specific Education
-accessGetPost.get(/^\/Education\/([a-f\d]{24})$/, async (req, res) => {
-  const eduID = req.params[0];
-
-  if (!mongoose.Types.ObjectId.isValid(eduID)) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid education ID format" });
+accessGetPost.get(`/Education/:educationId`, async (req, res) => {
+  console.log(req);
+  if (!ObjectId.isValid(req.params.educationId)) {
+    return res.status(400).json({ success: false, message: "Invalid user ID" });
   }
+  const educationId = new ObjectId(req.params.educationId);
 
   try {
-    const education = await EDUCATION.findById(eduID);
+    const education = await EDUCATION.findOne({ _id: educationId });
+
     if (!education) {
       return res.status(404).json({ success: false, message: "Education not found" });
-    }
+    };
+
     res.json(education);
   } catch (error) {
     res.status(500).json({
