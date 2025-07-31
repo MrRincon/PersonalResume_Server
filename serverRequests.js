@@ -1,7 +1,6 @@
 // Import the necessary modules
 const express = require("express");
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose")
 
 // Import collections from mongoDB server
 const {
