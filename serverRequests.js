@@ -1,6 +1,7 @@
 // Import the necessary modules
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongose")
 
 // Import collections from mongoDB server
 const {
@@ -63,16 +64,17 @@ accessGetPost.get(`/Links/:userId`, async (req, res) => {
 });
 
 // GET for an Specific Education
-accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
-  const eduID = parseInt(req.params[0], 10);
-  if (isNaN(eduID)) {
+accessGetPost.get(/^\/Education\/([a-f\d]{24})$/, async (req, res) => {
+  const eduID = req.params[0];
+
+  if (!mongoose.Types.ObjectId.isValid(eduID)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid education ID" });
+      .json({ success: false, message: "Invalid education ID format" });
   }
 
   try {
-    const education = await EDUCATION.findOne({ _id: eduID });
+    const education = await EDUCATION.findById(eduID);
     if (!education) {
       return res.status(404).json({ success: false, message: "Education not found" });
     }
