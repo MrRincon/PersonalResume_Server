@@ -51,7 +51,7 @@ accessGetPost.get(`/Links/:userId`, async (req, res) => {
       return res.json([]);
     };
 
-    const links = await LINKS.find({ id: { $in: user.links } }).toArray(); // Get all the links related to the user id provided
+    const links = await LINKS.find({ _id: { $in: user.links } }).toArray(); // Get all the links related to the user id provided
 
     res.json(links);
   } catch (error) {
@@ -72,7 +72,7 @@ accessGetPost.get(/^\/Education\/(\d+)$/, async (req, res) => {
   }
 
   try {
-    const education = await EDUCATION.findOne({ id: eduID });
+    const education = await EDUCATION.findOne({ _id: eduID });
     if (!education) {
       return res.status(404).json({ success: false, message: "Education not found" });
     }
@@ -99,7 +99,7 @@ accessGetPost.get(`/Skills/:userId`, async (req, res) => {
       return res.json([]);
     };
 
-    const skills = await SKILLS.find({ id: { $in: user.skills } }).toArray();
+    const skills = await SKILLS.find({ _id: { $in: user.skills } }).toArray();
 
     res.json(skills);
   } catch (error) {
