@@ -190,14 +190,14 @@ accessGetPost.post('/SendNewMessage', async (req, res) => {
     const messageId = insertResponse.insertedId;
 
     await USER.updateOne(
-      { _id: userId },
+      { _id: new ObjectId(userId) },
       { $push: { inbox: messageId } }
     );
 
     await sendNotificationEmail(
-      user.contact.email,   
-      newMessage.fromName,  
-      newMessage.fromEmail, 
+      user.contact.email,
+      newMessage.fromName,
+      newMessage.fromEmail,
       newMessage.content
     );
 
