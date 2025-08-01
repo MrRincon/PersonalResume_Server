@@ -36,6 +36,7 @@ const EDUCATION = DB.collection("Education");
 const LINKS = DB.collection("Links");
 const PROJECTS = DB.collection("Projects");
 const SKILLS = DB.collection("Skills");
+const MESSAGES = DB.collection("Messages");
 
 // Exporting the collections 
-module.exports = { USER, EDUCATION, LINKS, PROJECTS, SKILLS };
+module.exports = { USER, EDUCATION, LINKS, PROJECTS, SKILLS, MESSAGES };
