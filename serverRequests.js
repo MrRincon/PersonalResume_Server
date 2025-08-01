@@ -44,14 +44,38 @@ async function sendNotificationEmail(toEmail, fromName, fromEmail, messageConten
   }
 }
 
-// GET to the server welcome page
-accessGetPost.get(`/`, (req, res) => {
-  res.send("Welcome to the server side of my resume");
-});
+async function getUserSubCollection(req, res, field, collection) {
+  const { userId } = req.params;
+
+  if (!ObjectId.isValid(userId)) {
+    return res.status(400).json({ success: false, message: "Invalid user ID" });
+  }
+
+  try {
+    const user = await USER.findOne({ _id: new ObjectId(userId) });
+
+    if (!user || !Array.isArray(user[field]) || user[field].length === 0) {
+      return res.json([]);
+    }
+
+    const items = await collection.find({ _id: { $in: user[field] } }).toArray();
+    return res.json(items);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Error retrieving ${field} for the user: ${error}`,
+    });
+  }
+}
 
 // Try catch for any errors when trying to fetch the requests
 // Finding all the documents from the collection that match with the queries
 // Sending the response as a json format
+
+// GET to the server welcome page
+accessGetPost.get(`/`, (req, res) => {
+  res.send("Welcome to the server side of my resume");
+});
 
 // GET for the owner information
 accessGetPost.get(`/Owner`, async (req, res) => {
@@ -67,33 +91,12 @@ accessGetPost.get(`/Owner`, async (req, res) => {
 });
 
 // GET for all the links related to the user
-accessGetPost.get(`/Links/:userId`, async (req, res) => {
-  if (!ObjectId.isValid(req.params.userId)) {
-    return res.status(400).json({ success: false, message: "Invalid user ID" });
-  }
-  const userId = new ObjectId(req.params.userId);
-
-  try {
-    const user = await USER.findOne({ _id: userId }); // Find user by id
-
-    if (!user || !Array.isArray(user.links) || user.links.length === 0) {
-      return res.json([]);
-    };
-
-    const links = await LINKS.find({ _id: { $in: user.links } }).toArray(); // Get all the links related to the user id provided
-
-    res.json(links);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Error fetching links for the current user: ${error}`,
-    });
-  }
+accessGetPost.get("/Links/:userId", (req, res) => {
+  return getUserSubCollection(req, res, "links", LINKS);
 });
 
 // GET for an specific education of the user
 accessGetPost.get(`/Education/:educationId`, async (req, res) => {
-  console.log(req);
   if (!ObjectId.isValid(req.params.educationId)) {
     return res.status(400).json({ success: false, message: "Invalid user ID" });
   }
@@ -116,53 +119,13 @@ accessGetPost.get(`/Education/:educationId`, async (req, res) => {
 });
 
 // GET for all the skills related to the user
-accessGetPost.get(`/Skills/:userId`, async (req, res) => {
-  if (!ObjectId.isValid(req.params.userId)) {
-    return res.status(400).json({ success: false, message: "Invalid user ID" });
-  }
-  const userId = new ObjectId(req.params.userId);
-
-  try {
-    const user = await USER.findOne({ _id: userId });
-
-    if (!user || !Array.isArray(user.skills) || user.skills.length === 0) {
-      return res.json([]);
-    };
-
-    const skills = await SKILLS.find({ _id: { $in: user.skills } }).toArray();
-
-    res.json(skills);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Error getting the skills for the current user: ${error}`,
-    });
-  }
+accessGetPost.get("/Skills/:userId", (req, res) => {
+  return getUserSubCollection(req, res, "skills", SKILLS);
 });
 
 // GET for all the projects related to the user
-accessGetPost.get(`/Projects/:userId`, async (req, res) => {
-  if (!ObjectId.isValid(req.params.userId)) {
-    return res.status(400).json({ success: false, message: "Invalid user ID" });
-  }
-  const userId = new ObjectId(req.params.userId);
-
-  try {
-    const user = await USER.findOne({ _id: userId });
-
-    if (!user || !Array.isArray(user.projects) || user.projects.length === 0) {
-      return res.json([]);
-    };
-
-    const projects = await PROJECTS.find({ _id: { $in: user.projects } }).toArray();
-
-    res.json(projects);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Error getting the projects for the current user: ${error}`,
-    });
-  }
+accessGetPost.get("/Projects/:userId", (req, res) => {
+  return getUserSubCollection(req, res, "projects", PROJECTS);
 });
 
 // POST to send a direct message to the user
@@ -210,7 +173,7 @@ accessGetPost.post('/SendNewMessage', async (req, res) => {
 
     // const userObjectId = new ObjectId(userId);
     // const user = await USER.findOne({ _id: userObjectId });
-    const user = await USER.findOne({ _id: userId });
+    const user = await USER.findOne({ _id: new ObjectId(userId) });
 
     if (!user || !Array.isArray(user.inbox)) {
       return res.status(404).json({ error: "User ID not found or inbox structure not present" })
