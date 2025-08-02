@@ -1,9 +1,10 @@
-// Import the necessary modules
+// Importing the necessary modules
 const express = require("express");
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
+const fetch = require("node-fetch");
 
-// Import collections from mongoDB server
+// Importing the collections from mongoDB server
 const {
   USER,
   EDUCATION,
@@ -12,11 +13,16 @@ const {
   SKILLS,
   MESSAGES
 } = require("./mongoServer.js");
+
+// Initialising Express and middleware
 const accessGetPost = express();
 accessGetPost.use(bodyParser.json());
 accessGetPost.set("json spaces", 3);
+
+// Importing the ObjectId to work with MongoDB doc IDs
 const { ObjectId } = require('mongodb');
 
+// Configuring nodemailer transporter to send emails via Gmail
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -25,6 +31,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Function for a notification for every new message
 async function sendNotificationEmail(toEmail, fromName, fromEmail, messageContent) {
   const mailOptions = {
     from: `"Personal Resume Inbox" <${process.env.SMTP_USER}>`,
@@ -44,6 +51,7 @@ async function sendNotificationEmail(toEmail, fromName, fromEmail, messageConten
   }
 }
 
+// Function to get any sub-collection for a user
 async function getUserSubCollection(req, res, field, collection) {
   const { userId } = req.params;
 
@@ -68,9 +76,27 @@ async function getUserSubCollection(req, res, field, collection) {
   }
 }
 
-// Try catch for any errors when trying to fetch the requests
-// Finding all the documents from the collection that match with the queries
-// Sending the response as a json format
+// Validating the email with Abstract API
+async function isEmailValidAbstract(email) {
+  const apiKey = process.env.ABSTRACT_API_KEY;
+  const url = `https://emailvalidation.abstractapi.com/v1/?api_key=${apiKey}&email=${encodeURIComponent(email)}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    return (
+      data.deliverability === "DELIVERABLE" &&
+      data.is_valid_format?.value &&
+      !data.is_disposable_email?.value &&
+      !data.is_role_email?.value &&
+      data.is_smtp_valid?.value
+    );
+  } catch (error) {
+    console.error("Email verification API error:", error);
+    return false;
+  }
+}
 
 // GET to the server welcome page
 accessGetPost.get(`/`, (req, res) => {
@@ -144,6 +170,7 @@ accessGetPost.post('/SendNewMessage', async (req, res) => {
     const nameHasNumbers = /\d/.test(trimmedName);
     const nameParts = trimmedName.split(" ").filter(Boolean);
     const emailRegexCheck = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/.test(email);
+    const isValidEmail = await isEmailValidAbstract(email);
     const trimmedMessage = message.trim();
 
     if (!trimmedName) {
@@ -164,6 +191,9 @@ accessGetPost.post('/SendNewMessage', async (req, res) => {
     if (!emailRegexCheck) {
       return res.status(400).json({ error: "Invalid email address." });
     }
+    if (!isValidEmail) {
+      return res.status(400).json({ error: "This email address does not appear to be deliverable." });
+    }
     if (!trimmedMessage) {
       return res.status(400).json({ error: "Message cannot be empty." });
     }
@@ -171,8 +201,6 @@ accessGetPost.post('/SendNewMessage', async (req, res) => {
       return res.status(400).json({ error: "Message cannot exceed 300 characters." });
     }
 
-    // const userObjectId = new ObjectId(userId);
-    // const user = await USER.findOne({ _id: userObjectId });
     const user = await USER.findOne({ _id: new ObjectId(userId) });
 
     if (!user || !Array.isArray(user.inbox)) {
