@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const crypto = require("crypto");
 
 // Importing the collections from mongoDB server
 const {
@@ -31,6 +32,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Incorporating encryption
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const IV_LENGTH = 16;
+
 // Function for a notification for every new message
 async function sendNotificationEmail(toEmail, fromName, fromEmail, messageContent) {
   const mailOptions = {
@@ -49,6 +54,26 @@ async function sendNotificationEmail(toEmail, fromName, fromEmail, messageConten
   } catch (error) {
     console.error("Failed to send notification email:", error);
   }
+}
+
+// Function for data encryption
+function encrypt(text) {
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY), iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return iv.toString("hex") + ":" + encrypted;
+}
+
+// Function for data decryption
+function decrypt(text) {
+  const [ivHex, encryptedText] = text.split(":");
+  const iv = Buffer.from(ivHex, "hex");
+  const encrypted = Buffer.from(encryptedText, "hex");
+  const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY), iv);
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
 }
 
 // Function to get any sub-collection for a user
@@ -107,7 +132,25 @@ accessGetPost.get(`/`, (req, res) => {
 accessGetPost.get(`/Owner`, async (req, res) => {
   try {
     const owner = await USER.find({ name: "Alam" }).toArray();
-    res.json(owner);
+
+    if (owner.length === 0) {
+      return res.status(404).json({ success: false, message: "Owner not found" });
+    }
+
+    const modifiedOwner = owner.map(user => {
+      if (user.contact && user.contact.email) {
+        return {
+          ...user,
+          contact: {
+            ...user.contact,
+            email: encrypt(user.contact.email),
+          }
+        };
+      }
+      return user;
+    });
+
+    res.json(modifiedOwner);
   } catch (error) {
     res.status(500).json({
       success: false,
